@@ -62,7 +62,7 @@ Enjoy :)
 
   "python main.py"
 
-  To run automatically, you can add above command to /etc/rc.d/rc.local
+  To run automatically, you can add above command to /etc/rc.local
 
 ### How to use this repo
   Check the movie:
