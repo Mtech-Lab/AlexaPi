@@ -57,30 +57,46 @@ def gettoken():
 
 
 def alexa():
-	global audio	
+	global audio
 	# GPIO.output(24, GPIO.HIGH)
-	url = 'https://access-alexa-na.amazon.com/v1/avs/speechrecognizer/recognize'
+	# url = 'https://access-alexa-na.amazon.com/v1/avs/speechrecognizer/recognize'
+	url = 'https://avs-alexa-na.amazon.com/speechrecognizer/recognize'
 	headers = {'Authorization' : 'Bearer %s' % gettoken()}
-	d = {
-   		"messageHeader": {
-       		"deviceContext": [
-           		{
-               		"name": "playbackState",
-               		"namespace": "AudioPlayer",
-               		"payload": {
-                   		"streamId": "",
-        			   	"offsetInMilliseconds": "0",
-                   		"playerActivity": "IDLE"
-               		}
-           		}
-       		]
-		},
-   		"messageBody": {
-       		"profile": "alexa-close-talk",
-       		"locale": "en-us",
-       		"format": "audio/L16; rate=16000; channels=1"
-   		}
-	}
+    d = {
+        "context":[],
+        "event":{
+            "header":{
+                "namespace": "SpeechRecognizer",
+                "name": "Recognize",
+                "messageId": "1",
+                "dialogRequestId": "1"
+            },
+            "payload":{
+                "profile": "CLOSE_TALK"
+                "format": "AUDIO_L16_RATE_16000_CHANNELS_1"
+            }
+        }
+    }
+	# d = {
+    #   		"messageHeader": {
+    #    		"deviceContext": [
+    #        		{
+    #            		"name": "playbackState",
+    #            		"namespace": "AudioPlayer",
+    #            		"payload": {
+    #                		"streamId": "",
+    #     			   	"offsetInMilliseconds": "0",
+    #                		"playerActivity": "IDLE"
+    #            		}
+    #        		}
+    #    		]
+	# 	},
+    #   		"messageBody": {
+    #    		"profile": "alexa-close-talk",
+    #    		"locale": "en-us",
+    #    		"format": "audio/L16; rate=16000; channels=1"
+    #   		}
+	# }
 	with open(path+'recording.wav') as inf:
 		files = [
 				('file', ('request', json.dumps(d), 'application/json; charset=UTF-8')),
@@ -113,7 +129,7 @@ def alexa():
 def async_recording():
 	global recorded
 	time.sleep(5)
-	recorded = False 
+	recorded = False
 
 
 def start():
@@ -129,22 +145,22 @@ def start():
         		inp.setperiodsize(500)
         		audio = ""
         		recorded = True
-		
+
        		os.system('mpg123 -q {}record_now.mp3'.format(path))
-		
+
         	# recording(asyncronous)
         	recording_thread = threading.Thread(target=async_recording)
         	recording_thread.start()
-			
+
 	      	while recorded == True:
         		l, data = inp.read()
         		if l:
         			audio += data
-		recording_thread = None	
-		        	
+		recording_thread = None
+
 		# os.system('arecord -d 3 -D {} {}recording.wav'.format(device,path))
 		os.system('mpg123 -q {}request_now.mp3'.format(path))
-		
+
         	# call alexa
         	rf = open(path+'recording.wav', 'w')
         	rf.write(audio)
@@ -152,9 +168,9 @@ def start():
         	inp = None
 
         	# os.system('aplay {}recording.wav'.format(path))
-		
+
         	alexa()
-		
+
        		time.sleep(10)
 
 if __name__ == "__main__":
