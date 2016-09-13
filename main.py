@@ -12,6 +12,7 @@ import requests
 import json
 import re
 import threading
+from hyper.contrib import HTTP20Adapter
 from memcache import Client
 
 #Settings
@@ -59,8 +60,9 @@ def gettoken():
 def alexa():
 	global audio
 	# GPIO.output(24, GPIO.HIGH)
-	# url = 'https://access-alexa-na.amazon.com/v1/avs/speechrecognizer/recognize'
-	url = 'https://avs-alexa-na.amazon.com/speechrecognizer/recognize'
+    s = requests.Session()
+	url = 'https://avs-alexa-na.amazon.com'
+    s.mount(url, HTTP20Adapter())
 	headers = {'Authorization' : 'Bearer %s' % gettoken()}
     d = {
         "context":[],
@@ -77,32 +79,12 @@ def alexa():
             }
         }
     }
-	# d = {
-    #   		"messageHeader": {
-    #    		"deviceContext": [
-    #        		{
-    #            		"name": "playbackState",
-    #            		"namespace": "AudioPlayer",
-    #            		"payload": {
-    #                		"streamId": "",
-    #     			   	"offsetInMilliseconds": "0",
-    #                		"playerActivity": "IDLE"
-    #            		}
-    #        		}
-    #    		]
-	# 	},
-    #   		"messageBody": {
-    #    		"profile": "alexa-close-talk",
-    #    		"locale": "en-us",
-    #    		"format": "audio/L16; rate=16000; channels=1"
-    #   		}
-	# }
 	with open(path+'recording.wav') as inf:
 		files = [
-				('file', ('request', json.dumps(d), 'application/json; charset=UTF-8')),
+				('file', ('metadata', json.dumps(d), 'application/json; charset=UTF-8')),
 				('file', ('audio', inf, 'audio/L16; rate=16000; channels=1'))
 				]
-		r = requests.post(url, headers=headers, files=files)
+	r = s.post('https://avs-alexa-na.amazon.com/speechrecognizer/recognize', headers=headers, files=files)
 	if r.status_code == 200:
 		for v in r.headers['content-type'].split(";"):
 			if re.match('.*boundary.*', v):
